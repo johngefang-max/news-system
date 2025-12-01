@@ -6,6 +6,7 @@ import { ArticleStatus } from '@/types';
 import { slugify } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 0;
 
 // GET /api/articles - 获取文章列表
 export async function GET(request: NextRequest) {

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { slugify } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 0;
 
 // GET /api/categories - 获取分类列表
 export async function GET(request: NextRequest) {

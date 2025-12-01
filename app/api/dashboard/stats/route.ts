@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { ArticleStatus, UserRole } from '@/types';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 0;
 
 // GET /api/dashboard/stats - 获取仪表板统计数据
 export async function GET(request: NextRequest) {

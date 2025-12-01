@@ -6,6 +6,7 @@ import { ArticleStatus } from '@/types';
 import { slugify } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 0;
 
 interface RouteParams {
   params: {
