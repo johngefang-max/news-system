@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const createNextIntlPlugin = require('next-intl/plugin');
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin('./ni18n/request.ts');
 
 const nextConfig = {
   experimental: {

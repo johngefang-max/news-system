@@ -6,7 +6,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
-import { Search, Menu, X, Globe, User, LogOut, Settings } from 'lucide-react';
+import { Search, Menu, X, Globe, User, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
@@ -20,6 +20,9 @@ export function Header({ locale }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const [theme, setTheme] = useState<'light' | 'dark'>(
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  );
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +36,33 @@ export function Header({ locale }: HeaderProps) {
 
   const handleLanguageChange = (newLocale: string) => {
     const currentPath = pathname.replace(/^\/[^\/]+/, `/${newLocale}`);
-    router.push(currentPath);
+    const isAdmin = !!(session && (session.user as any)?.role === 'ADMIN');
+    if (isAdmin) {
+      (async () => {
+        try {
+          const res = await fetch('/api/settings');
+          if (res.ok) {
+            const data = await res.json();
+            const siteName = data?.data?.siteName ?? 'News Portal';
+            const themeValue = data?.data?.theme ?? (
+              document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+            );
+            await fetch('/api/settings', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                siteName,
+                defaultLanguage: newLocale,
+                theme: themeValue,
+              })
+            });
+          }
+        } catch (_) {}
+        router.push(currentPath);
+      })();
+    } else {
+      router.push(currentPath);
+    }
   };
 
   const isActive = (path: string) => {
@@ -45,6 +74,27 @@ export function Header({ locale }: HeaderProps) {
     { name: t('news'), href: '/news' },
     { name: t('categories'), href: '/categories' },
   ];
+
+  const toggleTheme = async () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    }
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        const siteName = data?.data?.siteName ?? 'News Portal';
+        const defaultLanguage = data?.data?.defaultLanguage ?? locale;
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteName, defaultLanguage, theme: nextTheme })
+        });
+      }
+    } catch (_) {}
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -88,8 +138,8 @@ export function Header({ locale }: HeaderProps) {
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Language Switcher */}
-            <div className="relative group">
+          {/* Language Switcher */}
+          <div className="relative group">
               <button
                 className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
                 aria-label={t('language')}
@@ -161,6 +211,17 @@ export function Header({ locale }: HeaderProps) {
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
+
+          {/* Theme Toggle (admin) */}
+          {session && (session.user as any)?.role === 'ADMIN' && (
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          )}
         </div>
 
         {/* Search Bar - Expandable */}

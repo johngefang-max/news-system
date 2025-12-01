@@ -7,16 +7,17 @@ import { Footer } from '@/components/layout/footer';
 interface PublicLayoutProps {
   children: ReactNode;
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
 export default function PublicLayout({
   children,
-  params: { locale },
+  params: { lang },
 }: PublicLayoutProps) {
+  const locale = lang;
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header locale={locale} />
       <main>{children}</main>
       <Footer currentLocale={locale} />

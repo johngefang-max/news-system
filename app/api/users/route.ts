@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // 检查用户角色
     const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user?.email ?? '' },
       select: { role: true }
     });
 
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     // 检查用户角色
     const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user?.email ?? '' },
       select: { role: true }
     });
 

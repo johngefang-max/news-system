@@ -7,6 +7,8 @@ import { ArticleStatus, UserRole } from '@/types';
 // GET /api/dashboard/stats - 获取仪表板统计数据
 export async function GET(request: NextRequest) {
   try {
+    const langParam = request.nextUrl.searchParams.get('lang');
+    const lang = (langParam && typeof langParam === 'string') ? langParam : 'zh';
     const session = await getServerSession(authOptions);
 
     // 认证检查
@@ -23,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // 获取当前用户信息
     const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user?.email ?? '' },
       select: { role: true, id: true }
     });
 
@@ -44,13 +46,16 @@ export async function GET(request: NextRequest) {
     const articleWhere = isAdmin ? {} : { authorId: currentUser.id };
 
     // 并行获取各种统计数据
+    const sinceDate = new Date();
+    sinceDate.setMonth(sinceDate.getMonth() - 12);
+
     const [
       totalArticles,
       publishedArticles,
       draftArticles,
       totalCategories,
       recentActivity,
-      articlesByMonth,
+      articlesCreatedDates,
       categoriesWithCount
     ] = await Promise.all([
       // 总文章数
@@ -84,17 +89,9 @@ export async function GET(request: NextRequest) {
         orderBy: {
           updatedAt: 'desc'
         },
-        include: {
-          author: {
-            select: {
-              name: true
-            }
-          }
-        },
         select: {
           id: true,
           slug: true,
-          title: true,
           status: true,
           updatedAt: true,
           author: {
@@ -105,23 +102,23 @@ export async function GET(request: NextRequest) {
         }
       }),
 
-      // 按月统计文章数
-      prisma.$queryRaw`
-        SELECT
-          DATE_TRUNC('month', "createdAt") as month,
-          COUNT(*) as count
-        FROM "articles"
-        WHERE "createdAt" >= NOW() - INTERVAL '12 months'
-        ${isAdmin ? '' : `AND "authorId" = ${currentUser.id}`}
-        GROUP BY DATE_TRUNC('month', "createdAt")
-        ORDER BY month ASC
-      `,
+      prisma.article.findMany({
+        where: {
+          ...articleWhere,
+          createdAt: {
+            gte: sinceDate
+          }
+        },
+        select: {
+          createdAt: true
+        }
+      }),
 
       // 分类及其文章数量
       prisma.category.findMany({
         include: {
           locales: {
-            where: { language: 'zh' },
+            where: { language: lang },
             select: { name: true }
           },
           _count: {
@@ -146,7 +143,7 @@ export async function GET(request: NextRequest) {
         const locale = await prisma.articleLocale.findFirst({
           where: {
             articleId: activity.id,
-            language: 'zh'
+            language: lang
           },
           select: { title: true }
         });
@@ -161,6 +158,16 @@ export async function GET(request: NextRequest) {
         };
       })
     );
+
+    const articlesByMonthMap = new Map<string, number>();
+    for (const item of articlesCreatedDates) {
+      const d = item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt as any);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      articlesByMonthMap.set(key, (articlesByMonthMap.get(key) ?? 0) + 1);
+    }
+    const articlesByMonth = Array.from(articlesByMonthMap.entries())
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => a.month.localeCompare(b.month));
 
     const stats = {
       overview: {

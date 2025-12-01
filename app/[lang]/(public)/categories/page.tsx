@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { NewsCard } from '@/components/news/news-card';
 import { CategoryBadge } from '@/components/news/category-badge';
 import { Button, Loading, LoadingSkeleton } from '@/components/ui';
@@ -50,11 +48,12 @@ interface Category {
 
 interface CategoriesPageProps {
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
-export default function CategoriesPage({ params: { locale } }: CategoriesPageProps) {
+export default function CategoriesPage({ params: { lang } }: CategoriesPageProps) {
+  const locale = lang;
   const t = useTranslations('Category');
   const ct = useTranslations('Common');
   const currentLocale = useLocale();
@@ -93,7 +92,6 @@ export default function CategoriesPage({ params: { locale } }: CategoriesPagePro
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-8">
           <div className="max-w-6xl mx-auto">
             <div className="space-y-8">
@@ -119,7 +117,6 @@ export default function CategoriesPage({ params: { locale } }: CategoriesPagePro
             </div>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
@@ -127,7 +124,6 @@ export default function CategoriesPage({ params: { locale } }: CategoriesPagePro
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-16">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">加载失败</h1>
@@ -137,15 +133,12 @@ export default function CategoriesPage({ params: { locale } }: CategoriesPagePro
             </Button>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
-
       <main>
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-12 md:py-16">
@@ -312,8 +305,6 @@ export default function CategoriesPage({ params: { locale } }: CategoriesPagePro
           </div>
         </section>
       </main>
-
-      <Footer currentLocale={locale} />
     </div>
   );
 }

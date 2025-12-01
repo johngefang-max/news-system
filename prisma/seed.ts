@@ -16,7 +16,6 @@ async function main() {
       email: 'admin@news.com',
       name: '系统管理员',
       role: 'ADMIN',
-      password: hashedPassword, // 注意：在实际应用中，这个字段应该通过NextAuth管理
     },
   });
 
@@ -199,7 +198,7 @@ In the current economic environment, renewable energy, artificial intelligence, 
           create: articleData.locales
         },
         categories: {
-          connect: articleData.categoryIds
+          connect: articleData.categoryIds.map((id) => ({ id }))
         }
       }
     });
@@ -212,6 +211,15 @@ In the current economic environment, renewable energy, artificial intelligence, 
 
 main()
   .then(async () => {
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "site_settings" (id, "siteName", "defaultLanguage", theme)
+         VALUES ('singleton', 'News Portal', 'zh', 'light')
+         ON CONFLICT (id) DO NOTHING;`
+      );
+    } catch (e) {
+      console.warn('跳过站点设置初始化', e as any);
+    }
     await prisma.$disconnect();
   })
   .catch(async (e) => {

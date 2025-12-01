@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { NewsCard } from '@/components/news/news-card';
 import { Button, Loading, LoadingSkeleton } from '@/components/ui';
 import { ArrowLeft, Calendar, Grid3X3, List, Filter } from 'lucide-react';
@@ -49,12 +47,13 @@ interface Category {
 
 interface CategoryPageProps {
   params: {
-    locale: string;
+    lang: string;
     slug: string;
   };
 }
 
-export default function CategoryPage({ params: { locale, slug: paramSlug } }: CategoryPageProps) {
+export default function CategoryPage({ params: { lang, slug: paramSlug } }: CategoryPageProps) {
+  const locale = lang;
   const t = useTranslations('Category');
   const st = useTranslations('Search');
   const nt = useTranslations('Navigation');
@@ -158,7 +157,6 @@ export default function CategoryPage({ params: { locale, slug: paramSlug } }: Ca
   if (loading && !articles.length) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-8">
           <div className="max-w-6xl mx-auto">
             <div className="space-y-8">
@@ -175,7 +173,6 @@ export default function CategoryPage({ params: { locale, slug: paramSlug } }: Ca
             </div>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
@@ -183,7 +180,6 @@ export default function CategoryPage({ params: { locale, slug: paramSlug } }: Ca
   if (error || !category) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-16">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -200,15 +196,12 @@ export default function CategoryPage({ params: { locale, slug: paramSlug } }: Ca
             </Link>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
-
       <main>
         {/* Category Header */}
         <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-12 md:py-16">
@@ -370,8 +363,6 @@ export default function CategoryPage({ params: { locale, slug: paramSlug } }: Ca
           </div>
         </section>
       </main>
-
-      <Footer currentLocale={locale} />
     </div>
   );
 }

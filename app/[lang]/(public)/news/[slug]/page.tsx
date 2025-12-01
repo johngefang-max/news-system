@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { CategoryBadge } from '@/components/news/category-badge';
 import { Button, Loading, LoadingSkeleton } from '@/components/ui';
 import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark, TrendingUp } from 'lucide-react';
@@ -40,12 +38,13 @@ interface Article {
 
 interface NewsDetailPageProps {
   params: {
-    locale: string;
+    lang: string;
     slug: string;
   };
 }
 
-export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: NewsDetailPageProps) {
+export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: NewsDetailPageProps) {
+  const locale = lang;
   const t = useTranslations('NewsDetail');
   const nt = useTranslations('Navigation');
   const currentLocale = useLocale();
@@ -155,7 +154,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-8">
           <div className="max-w-4xl mx-auto">
             <div className="space-y-6">
@@ -174,7 +172,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
             </div>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
@@ -182,7 +179,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
   if (error || !article) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-16">
           <div className="text-center max-w-md mx-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -199,7 +195,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
             </Link>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
@@ -213,8 +208,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
-
       <main>
         {/* Breadcrumb */}
         <div className="bg-white border-b border-gray-200">
@@ -384,8 +377,6 @@ export default function NewsDetailPage({ params: { locale, slug: paramSlug } }: 
           </section>
         )}
       </main>
-
-      <Footer currentLocale={locale} />
     </div>
   );
 }

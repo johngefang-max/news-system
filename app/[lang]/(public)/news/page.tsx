@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { NewsCard, FeaturedNewsCard } from '@/components/news/news-card';
 import { CategoryBadge } from '@/components/news/category-badge';
 import { Button, Loading, LoadingSkeleton, Input } from '@/components/ui';
@@ -47,11 +45,12 @@ interface Category {
 
 interface NewsPageProps {
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
-export default function NewsPage({ params: { locale } }: NewsPageProps) {
+export default function NewsPage({ params: { lang } }: NewsPageProps) {
+  const locale = lang;
   const t = useTranslations('HomePage');
   const st = useTranslations('Search');
   const nt = useTranslations('Navigation');
@@ -176,7 +175,6 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
   if (loading && currentPage === 1) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-8">
           <div className="space-y-8">
             {/* Featured skeleton */}
@@ -201,7 +199,6 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
             </div>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
@@ -209,7 +206,6 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
         <main className="container-custom py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">加载失败</h1>
@@ -219,15 +215,12 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
             </Button>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
-
       <main>
         {/* Hero Section with Featured Articles */}
         {featuredMainArticle && currentPage === 1 && (
@@ -355,7 +348,7 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
                 )}
                 {filters.search && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                    "{filters.search}"
+                    &quot;{filters.search}&quot;
                     <button
                       onClick={() => handleFilterChange('search', '')}
                       className="ml-1 text-gray-500 hover:text-gray-700"
@@ -389,7 +382,11 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {filters.search ? `${st('searchFor')}"${filters.search}"` : t('latestNews')}
+                  {filters.search ? (
+                    <>
+                      {st('searchFor')}&quot;{filters.search}&quot;
+                    </>
+                  ) : t('latestNews')}
                 </h1>
                 <p className="text-gray-600">
                   {pagination.totalCount} {locale === 'zh' ? '篇文章' : 'articles'}
@@ -463,8 +460,6 @@ export default function NewsPage({ params: { locale } }: NewsPageProps) {
           </div>
         </section>
       </main>
-
-      <Footer currentLocale={locale} />
     </div>
   );
 }

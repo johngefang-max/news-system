@@ -23,7 +23,8 @@
     "admin": "Admin Dashboard",
     "logout": "Logout",
     "login": "Login",
-    "language": "Language"
+    "language": "Language",
+    "search": "Search"
   },
   "HomePage": {
     "title": "International News Portal",

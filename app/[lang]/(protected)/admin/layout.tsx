@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
@@ -25,19 +25,26 @@ import {
 interface AdminLayoutProps {
   children: React.ReactNode;
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
 export default function AdminLayout({
   children,
-  params: { locale },
+  params: { lang },
 }: AdminLayoutProps) {
+  const locale = lang;
   const t = useTranslations('Admin');
   const nt = useTranslations('Navigation');
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace(`/${locale}/login?callbackUrl=/${locale}/admin/dashboard`);
+    }
+  }, [status, locale, router]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: `/${locale}/login` });

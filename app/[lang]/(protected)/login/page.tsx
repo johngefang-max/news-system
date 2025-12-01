@@ -35,24 +35,14 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        callbackUrl,
         redirect: false,
       });
 
       if (result?.error) {
         setError(t('invalidCredentials'));
       } else if (result?.ok) {
-        // 验证是否是管理员
-        const session = await getSession();
-        if (session?.user?.role === 'ADMIN') {
-          router.push(callbackUrl);
-        } else {
-          setError('Access denied. Administrator privileges required.');
-          await signIn('credentials', {
-            email: formData.email,
-            password: formData.password,
-            redirect: false,
-          }); // 登出非管理员用户
-        }
+        router.push(callbackUrl);
       } else {
         setError(t('loginError'));
       }

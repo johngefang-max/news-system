@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { NewsCard, FeaturedNewsCard, CompactNewsCard } from '@/components/news/news-card';
 import { CategoryGrid, CategoryBadge } from '@/components/news/category-badge';
 import { Button, Loading, CardSkeleton } from '@/components/ui';
@@ -49,11 +47,12 @@ interface Category {
 
 interface HomePageProps {
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
-export default function HomePage({ params: { locale } }: HomePageProps) {
+export default function HomePage({ params: { lang } }: HomePageProps) {
+  const locale = lang;
   const t = useTranslations('HomePage');
   const nt = useTranslations('Navigation');
   const currentLocale = useLocale();
@@ -111,8 +110,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header locale={locale} />
+      <div className="min-h-screen bg-background">
         <main className="container-custom py-8">
           <div className="space-y-8">
             {/* Featured skeleton */}
@@ -150,14 +148,13 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
             </div>
           </div>
         </main>
-        <Footer currentLocale={locale} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">加载失败</h1>
           <p className="text-gray-600 mb-4">{error}</p>
@@ -170,9 +167,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
-
+    <div className="min-h-screen bg-background">
       <main>
         {/* Hero Section with Featured Articles */}
         {featuredMainArticle && (
@@ -311,8 +306,6 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
           </section>
         )}
       </main>
-
-      <Footer currentLocale={locale} />
     </div>
   );
 }
