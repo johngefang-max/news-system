@@ -50,7 +50,8 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
   const currentLocale = useLocale();
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slugParam = (params as any)?.slug;
+  const slug = Array.isArray(slugParam) ? (slugParam as string[])[0] : (slugParam as string | undefined);
 
   const [article, setArticle] = useState<Article | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);

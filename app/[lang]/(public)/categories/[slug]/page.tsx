@@ -60,7 +60,8 @@ export default function CategoryPage({ params: { lang, slug: paramSlug } }: Cate
   const currentLocale = useLocale();
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slugParam = (params as any)?.slug;
+  const slug = Array.isArray(slugParam) ? (slugParam as string[])[0] : (slugParam as string | undefined);
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
@@ -106,7 +107,7 @@ export default function CategoryPage({ params: { lang, slug: paramSlug } }: Cate
       const queryParams = new URLSearchParams({
         language: locale,
         status: 'PUBLISHED',
-        category: slug,
+        category: slug || '',
         page: page.toString(),
         limit: pagination.limit.toString(),
         sortBy,

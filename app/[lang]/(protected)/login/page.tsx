@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const callbackUrl = searchParams.get('callbackUrl') || `/${locale}/admin/dashboard`;
+  const callbackUrl = searchParams?.get('callbackUrl') || `/${locale}/admin/dashboard`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -57,7 +57,7 @@ export default function SearchPage({ params: { lang } }: SearchPageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [query, setQuery] = useState(searchParams?.get('q') || '');
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function SearchPage({ params: { lang } }: SearchPageProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filters, setFilters] = useState({
-    category: searchParams.get('category') || '',
+    category: searchParams?.get('category') || '',
     sortBy: 'publishedAt',
     sortOrder: 'desc',
   });

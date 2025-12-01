@@ -20,6 +20,7 @@ export function Header({ locale }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const safePathname = pathname || '/';
   const [theme, setTheme] = useState<'light' | 'dark'>(
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
   );
@@ -35,7 +36,7 @@ export function Header({ locale }: HeaderProps) {
   };
 
   const handleLanguageChange = (newLocale: string) => {
-    const currentPath = pathname.replace(/^\/[^\/]+/, `/${newLocale}`);
+    const currentPath = safePathname.replace(/^\/[^\/]+/, `/${newLocale}`);
     const isAdmin = !!(session && (session.user as any)?.role === 'ADMIN');
     if (isAdmin) {
       (async () => {
@@ -66,7 +67,7 @@ export function Header({ locale }: HeaderProps) {
   };
 
   const isActive = (path: string) => {
-    return pathname === `/${locale}${path}`;
+    return safePathname === `/${locale}${path}`;
   };
 
   const navigation = [

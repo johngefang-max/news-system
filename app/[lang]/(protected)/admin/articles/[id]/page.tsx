@@ -56,7 +56,9 @@ export default function ArticleEditorPage() {
   const locale = useLocale();
   const params = useParams();
   const router = useRouter();
-  const isEditing = !!params.id;
+  const idParam = (params as any)?.id;
+  const articleId = Array.isArray(idParam) ? (idParam as string[])[0] : (idParam as string | undefined);
+  const isEditing = !!articleId;
 
   const [formData, setFormData] = useState<ArticleFormData>({
     slug: '',
@@ -92,7 +94,7 @@ export default function ArticleEditorPage() {
     if (isEditing) {
       fetchArticle();
     }
-  }, [isEditing, params.id]);
+  }, [isEditing, articleId]);
 
   const fetchCategories = async () => {
     try {
@@ -109,7 +111,7 @@ export default function ArticleEditorPage() {
   const fetchArticle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/articles/${params.id}`);
+      const response = await fetch(`/api/articles/${articleId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch article');
       }
@@ -171,7 +173,7 @@ export default function ArticleEditorPage() {
         publishedAt: publish && !formData.publishedAt ? new Date().toISOString() : formData.publishedAt,
       };
 
-      const url = isEditing ? `/api/articles/${params.id}` : '/api/articles';
+      const url = isEditing ? `/api/articles/${articleId}` : '/api/articles';
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

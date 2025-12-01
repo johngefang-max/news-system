@@ -71,14 +71,14 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState({
-    category: searchParams.get('category') || '',
-    search: searchParams.get('search') || '',
+    category: searchParams?.get('category') || '',
+    search: searchParams?.get('search') || '',
     sortBy: 'publishedAt',
     sortOrder: 'desc',
   });
 
   // 从URL参数获取分页信息
-  const currentPage = parseInt(searchParams.get('page') || '1');
+  const currentPage = parseInt(searchParams?.get('page') || '1');
 
   useEffect(() => {
     fetchNewsData(currentPage);
@@ -163,7 +163,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
   };
 
   const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('page', page.toString());
     router.push(`/${locale}/news?${params.toString()}`);
   };
