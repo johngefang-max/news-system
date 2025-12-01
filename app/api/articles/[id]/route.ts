@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ArticleStatus } from '@/types';
 import { slugify } from '@/lib/utils';
+export const dynamic = 'force-dynamic';
 
 interface RouteParams {
   params: {

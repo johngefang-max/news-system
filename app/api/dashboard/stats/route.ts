@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ArticleStatus, UserRole } from '@/types';
+export const dynamic = 'force-dynamic';
 
 // GET /api/dashboard/stats - 获取仪表板统计数据
 export async function GET(request: NextRequest) {
