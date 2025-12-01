@@ -11,7 +11,7 @@ export const revalidate = 0;
 // GET /api/articles - 获取文章列表
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const language = searchParams.get('language') || 'zh';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('GET /api/articles error:', error);
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const language = searchParams.get('language') || 'zh';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');

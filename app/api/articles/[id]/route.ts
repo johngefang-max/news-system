@@ -16,7 +16,7 @@ export async function GET(
   context: RouteContext = {}
 ) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const language = searchParams.get('language') || 'zh';
     const id = context?.params?.id;
     if (!id) {

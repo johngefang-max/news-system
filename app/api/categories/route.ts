@@ -10,7 +10,7 @@ export const revalidate = 0;
 // GET /api/categories - 获取分类列表
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const language = searchParams.get('language') || 'zh';
     const includeArticleCount = searchParams.get('includeArticleCount') === 'true';
 
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('GET /api/categories error:', error);
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const language = searchParams.get('language') || 'zh';
 
     const mockCategories = [
