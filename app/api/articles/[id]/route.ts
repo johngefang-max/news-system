@@ -8,21 +8,23 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const revalidate = 0;
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
+type RouteContext = { params?: { id?: string } };
 
 // GET /api/articles/[id] - 获取单篇文章
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext = {}
 ) {
   try {
     const { searchParams } = new URL(request.url);
     const language = searchParams.get('language') || 'zh';
-    const { id } = params;
+    const id = context?.params?.id;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing id', message: '缺少文章ID' },
+        { status: 400 }
+      );
+    }
 
     const article = await prisma.article.findUnique({
       where: { id },
@@ -139,7 +141,7 @@ export async function GET(
 // PUT /api/articles/[id] - 更新文章
 export async function PUT(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext = {}
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -156,7 +158,13 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const id = context?.params?.id;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing id', message: '缺少文章ID' },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
     const {
       slug,
@@ -295,7 +303,7 @@ export async function PUT(
 // DELETE /api/articles/[id] - 删除文章
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext = {}
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -312,7 +320,13 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const id = context?.params?.id;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing id', message: '缺少文章ID' },
+        { status: 400 }
+      );
+    }
 
     // 检查文章是否存在
     const existingArticle = await prisma.article.findUnique({
