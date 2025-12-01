@@ -187,8 +187,10 @@ In the current economic environment, renewable energy, artificial intelligence, 
   ];
 
   for (const articleData of sampleArticles) {
-    const article = await prisma.article.create({
-      data: {
+    const article = await prisma.article.upsert({
+      where: { slug: articleData.slug },
+      update: {},
+      create: {
         slug: articleData.slug,
         status: articleData.status,
         featured: articleData.featured,
@@ -212,11 +214,16 @@ In the current economic environment, renewable energy, artificial intelligence, 
 main()
   .then(async () => {
     try {
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO "site_settings" (id, "siteName", "defaultLanguage", theme)
-         VALUES ('singleton', 'News Portal', 'zh', 'light')
-         ON CONFLICT (id) DO NOTHING;`
-      );
+      await prisma.siteSetting.upsert({
+        where: { id: 'singleton' },
+        update: {},
+        create: {
+          id: 'singleton',
+          siteName: 'News Portal',
+          defaultLanguage: 'zh',
+          theme: 'light',
+        }
+      });
     } catch (e) {
       console.warn('跳过站点设置初始化', e as any);
     }
