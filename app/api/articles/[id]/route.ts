@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { ArticleStatus } from '@/types';
 import { slugify } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 interface RouteParams {
   params: {
