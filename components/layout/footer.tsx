@@ -2,7 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { locale } from 'next-intl/router';
 
 interface FooterProps {
   currentLocale: string;

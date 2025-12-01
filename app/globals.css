@@ -143,11 +143,11 @@
 
 /* Custom component styles */
 .news-card {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group cursor-pointer;
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer;
 }
 
 .news-card-title {
-  @apply font-semibold text-xl mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors;
+  @apply font-semibold text-xl mb-3 line-clamp-2;
 }
 
 .news-card-excerpt {

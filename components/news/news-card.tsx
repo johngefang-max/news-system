@@ -93,7 +93,7 @@ export function NewsCard({
 
       <CardContent className="p-6">
         {/* Title */}
-        <h3 className="news-card-title">
+        <h3 className="news-card-title transition-colors group-hover:text-blue-600">
           {currentLocaleContent.title}
         </h3>
 

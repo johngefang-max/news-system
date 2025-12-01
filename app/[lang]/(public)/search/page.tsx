@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { NewsCard } from '@/components/news/news-card';
 import { CategoryBadge } from '@/components/news/category-badge';
 import { Button, Loading, LoadingSkeleton, Input } from '@/components/ui';
@@ -47,11 +45,12 @@ interface Category {
 
 interface SearchPageProps {
   params: {
-    locale: string;
+    lang: string;
   };
 }
 
-export default function SearchPage({ params: { locale } }: SearchPageProps) {
+export default function SearchPage({ params: { lang } }: SearchPageProps) {
+  const locale = lang;
   const t = useTranslations('Search');
   const st = useTranslations('HomePage');
   const currentLocale = useLocale();
@@ -215,7 +214,6 @@ export default function SearchPage({ params: { locale } }: SearchPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header locale={locale} />
 
       <main>
         {/* Search Header */}
@@ -355,7 +353,7 @@ export default function SearchPage({ params: { locale } }: SearchPageProps) {
               {query && (
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
-                    {t('searchFor')} "{query}"
+                    {t('searchFor')} &quot;{query}&quot;
                   </h2>
                   <p className="text-gray-600">
                     {articles.length} {locale === 'zh' ? '个结果' : 'results'}
@@ -453,7 +451,6 @@ export default function SearchPage({ params: { locale } }: SearchPageProps) {
         </section>
       </main>
 
-      <Footer currentLocale={locale} />
     </div>
   );
 }

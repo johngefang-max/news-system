@@ -16,30 +16,40 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
+        const email = credentials.email.trim().toLowerCase();
+        const password = credentials.password.trim();
+        const adminEmail = 'admin@news.com';
+        const adminPass = 'admin123';
+
+        let user = await prisma.user.findUnique({
           where: {
-            email: credentials.email
+            email
           }
         });
 
         if (!user) {
-          return null;
+          const isAdmin = email === adminEmail && password === adminPass;
+          if (isAdmin) {
+            user = await prisma.user.create({
+              data: {
+                email: adminEmail,
+                name: '系统管理员',
+                role: 'ADMIN'
+              }
+            });
+          } else {
+            return null;
+          }
         }
 
-        // 在实际应用中，用户密码应该存储在单独的表中，通过NextAuth管理
-        // 这里为了简化，我们直接检查预设的管理员账户
-        const isAdmin = credentials.email === 'admin@news.com' && credentials.password === 'admin123';
-
-        if (isAdmin) {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        }
-
-        return null;
+        const isAdmin = email === adminEmail && password === adminPass;
+        if (!isAdmin) return null;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
       }
     })
   ],
@@ -49,14 +59,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        (token as any).role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role as string;
+        (session.user as any).id = (token as any).sub!;
+        (session.user as any).role = (token as any).role as string;
       }
       return session;
     }

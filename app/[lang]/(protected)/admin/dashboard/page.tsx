@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import {
@@ -69,14 +69,18 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/dashboard/stats');
+      const response = await fetch(`/api/dashboard/stats?lang=${locale}`);
+      if (response.status === 401) {
+        setError(locale === 'zh' ? '请先登录' : 'Please sign in');
+        return;
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch stats');
       }
       const data = await response.json();
       setStats(data.data);
     } catch (err) {
-      setError('Failed to load dashboard data');
+      setError(locale === 'zh' ? '仪表盘数据加载失败' : 'Failed to load dashboard data');
       console.error('Error fetching stats:', err);
     } finally {
       setLoading(false);
@@ -158,6 +162,11 @@ export default function DashboardPage() {
           <Button onClick={fetchStats} className="mt-2">
             Retry
           </Button>
+          {!session && (
+            <Button onClick={() => signIn()} variant="outline" className="mt-2 ml-2">
+              {locale === 'zh' ? '登录' : 'Sign In'}
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -171,7 +180,7 @@ export default function DashboardPage() {
           {t('welcome')}, {session?.user?.name || 'Admin'}!
         </h1>
         <p className="text-gray-600">
-          {locale === 'zh' ? '这是您的管理面板概览' : 'Here\'s what\'s happening with your site today'}
+          {locale === 'zh' ? '这是您的管理面板概览' : 'Here&apos;s what&apos;s happening with your site today'}
         </p>
       </div>
 
