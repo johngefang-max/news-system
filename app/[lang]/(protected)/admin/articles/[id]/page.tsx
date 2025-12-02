@@ -167,11 +167,31 @@ export default function ArticleEditorPage() {
       setSaving(true);
       setError('');
 
+      const localesArray = (['zh', 'en'] as const)
+        .map((lang) => {
+          const l = formData.locales[lang];
+          if (!l.title || !l.content) return null;
+          return {
+            language: lang,
+            title: l.title,
+            content: l.content,
+            excerpt: l.excerpt || '',
+            metaDescription: l.metaDescription || '',
+          };
+        })
+        .filter(Boolean);
+
       const submitData = {
-        ...formData,
+        slug: formData.slug,
         status: publish ? 'PUBLISHED' : 'DRAFT',
-        publishedAt: publish && !formData.publishedAt ? new Date().toISOString() : formData.publishedAt,
-      };
+        featured: formData.featured,
+        locales: localesArray,
+        categoryIds: formData.categoryIds,
+        publishedAt:
+          publish
+            ? (formData.publishedAt ? new Date(formData.publishedAt).toISOString() : new Date().toISOString())
+            : null,
+      } as any;
 
       const url = isEditing ? `/api/articles/${articleId}` : '/api/articles';
       const method = isEditing ? 'PUT' : 'POST';

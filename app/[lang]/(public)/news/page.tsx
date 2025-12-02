@@ -70,8 +70,13 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
     totalPages: 0,
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const initialCategoriesParam = (searchParams?.get('categories') || searchParams?.get('category') || '').split(',').filter(Boolean);
+  const initialTagsParam = (searchParams?.get('tags') || '').split(',').filter(Boolean);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategoriesParam);
+  const [tags, setTags] = useState<string[]>(initialTagsParam);
+  const [tagInput, setTagInput] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [filters, setFilters] = useState({
-    category: searchParams?.get('category') || '',
     search: searchParams?.get('search') || '',
     sortBy: 'publishedAt',
     sortOrder: 'desc',
@@ -83,24 +88,32 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
   useEffect(() => {
     fetchNewsData(currentPage);
     fetchCategories();
-  }, [locale, currentPage, filters]);
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('news:tagsHistory') : null;
+    if (saved) {
+      try {
+        const arr = JSON.parse(saved);
+        if (Array.isArray(arr)) setTagSuggestions(arr.filter((t: string) => !tags.includes(t)).slice(0, 10));
+      } catch (_) {}
+    }
+  }, [locale, currentPage, filters, selectedCategories, tags]);
 
   const fetchNewsData = async (page: number = 1) => {
     try {
       setLoading(true);
       setError(null);
 
+      const clientPagingEnabled = selectedCategories.length > 1 || tags.length > 0;
       const queryParams = new URLSearchParams({
         language: locale,
         status: 'PUBLISHED',
         page: page.toString(),
-        limit: pagination.limit.toString(),
+        limit: (clientPagingEnabled ? String(pagination.limit * 10) : pagination.limit.toString()),
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
       });
 
-      if (filters.category) {
-        queryParams.append('category', filters.category);
+      if (selectedCategories.length === 1) {
+        queryParams.append('category', selectedCategories[0]);
       }
 
       if (filters.search) {
@@ -118,15 +131,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
       setArticles(data.data.articles || []);
       setPagination(data.data.pagination || pagination);
 
-      // 获取精选文章（只在第一页显示）
-      if (page === 1) {
-        const featured = (data.data.articles || [])
-          .filter((article: Article) => article.featured)
-          .slice(0, 3);
-        setFeaturedArticles(featured);
-      } else {
-        setFeaturedArticles([]);
-      }
+      
 
     } catch (err) {
       setError('Failed to load articles');
@@ -135,6 +140,19 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const r = await fetch(`/api/articles?language=${locale}&status=PUBLISHED&featured=true&limit=3&sortBy=publishedAt&sortOrder=desc`);
+        if (r.ok) {
+          const d = await r.json();
+          setFeaturedArticles(d.data?.articles || []);
+        }
+      } catch (_) {}
+    };
+    fetchFeatured();
+  }, [locale]);
 
   const fetchCategories = async () => {
     try {
@@ -151,14 +169,65 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-
-    // 更新URL参数
     const params = new URLSearchParams();
     Object.entries(newFilters).forEach(([k, v]) => {
       if (v) params.append(k, v);
     });
+    if (selectedCategories.length > 0) params.append('categories', selectedCategories.join(','));
+    if (tags.length > 0) params.append('tags', tags.join(','));
     params.set('page', '1');
+    router.push(`/${locale}/news?${params.toString()}`);
+  };
 
+  const toggleCategory = (slug: string) => {
+    const next = selectedCategories.includes(slug)
+      ? selectedCategories.filter((s) => s !== slug)
+      : [...selectedCategories, slug];
+    setSelectedCategories(next);
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v as string); });
+    if (next.length > 0) params.append('categories', next.join(','));
+    if (tags.length > 0) params.append('tags', tags.join(','));
+    params.set('page', '1');
+    router.push(`/${locale}/news?${params.toString()}`);
+  };
+
+  const addTag = (tag: string) => {
+    const t = tag.trim();
+    if (!t) return;
+    if (tags.includes(t)) return;
+    const next = [...tags, t];
+    setTags(next);
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('news:tagsHistory') : null;
+      const arr = saved ? JSON.parse(saved) : [];
+      const merged = Array.isArray(arr) ? Array.from(new Set([t, ...arr])).slice(0, 20) : [t];
+      localStorage.setItem('news:tagsHistory', JSON.stringify(merged));
+      setTagSuggestions(merged.filter((x: string) => !next.includes(x)).slice(0, 10));
+    } catch (_) {}
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v as string); });
+    if (selectedCategories.length > 0) params.append('categories', selectedCategories.join(','));
+    params.append('tags', next.join(','));
+    params.set('page', '1');
+    router.push(`/${locale}/news?${params.toString()}`);
+  };
+
+  const removeTag = (tag: string) => {
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('news:tagsHistory') : null;
+      const arr = saved ? JSON.parse(saved) : [];
+      const merged = Array.isArray(arr) ? arr.filter((x: string) => x !== tag) : [];
+      localStorage.setItem('news:tagsHistory', JSON.stringify(merged));
+      setTagSuggestions(merged.filter((x: string) => !next.includes(x)).slice(0, 10));
+    } catch (_) {}
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v as string); });
+    if (selectedCategories.length > 0) params.append('categories', selectedCategories.join(','));
+    if (next.length > 0) params.append('tags', next.join(','));
+    params.set('page', '1');
     router.push(`/${locale}/news?${params.toString()}`);
   };
 
@@ -168,7 +237,24 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
     router.push(`/${locale}/news?${params.toString()}`);
   };
 
-  const nonFeaturedArticles = articles.filter(article => !article.featured);
+  const localeFilter = (a: Article) => a.locales.find(l => l.language === locale) || a.locales[0];
+  const matchCategories = (a: Article) => selectedCategories.length === 0 || a.categories.some(c => selectedCategories.includes(c.slug));
+  const matchTags = (a: Article) => {
+    if (tags.length === 0) return true;
+    const lc = localeFilter(a);
+    const text = `${lc?.title || ''} ${lc?.excerpt || ''}`.toLowerCase();
+    return tags.some(t => text.includes(t.toLowerCase()));
+  };
+  const clientFilteredArticles = articles.filter(a => matchCategories(a) && matchTags(a));
+  const nonFeaturedArticles = clientFilteredArticles.filter(article => !article.featured);
+  const filteredTotalCount = clientFilteredArticles.length;
+  const clientPagingEnabled = selectedCategories.length > 1 || tags.length > 0;
+  const effectiveTotalCount = clientPagingEnabled ? filteredTotalCount : pagination.totalCount;
+  const effectiveTotalPages = Math.max(1, Math.ceil(effectiveTotalCount / pagination.limit));
+  const currentPageClamped = Math.min(Math.max(1, currentPage), effectiveTotalPages);
+  const displayedArticles = clientPagingEnabled
+    ? nonFeaturedArticles.slice((currentPageClamped - 1) * pagination.limit, currentPageClamped * pagination.limit)
+    : nonFeaturedArticles;
   const featuredMainArticle = featuredArticles[0];
   const featuredSecondaryArticles = featuredArticles.slice(1);
 
@@ -223,7 +309,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
     <div className="min-h-screen bg-gray-50">
       <main>
         {/* Hero Section with Featured Articles */}
-        {featuredMainArticle && currentPage === 1 && (
+        {featuredMainArticle && (
           <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-12 md:py-16">
             <div className="container-custom">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -281,20 +367,78 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
                 </div>
               </div>
 
-              {/* Category Filter */}
-              <div className="lg:w-48">
-                <select
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                  className="w-full h-10 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">{locale === 'zh' ? '所有分类' : 'All Categories'}</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.slug}>
-                      {category.locales.find(l => l.language === locale)?.name || category.locales[0]?.name}
-                    </option>
-                  ))}
-                </select>
+              {/* Tags Filter */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    placeholder={locale === 'zh' ? '添加标签后按 Enter' : 'Add tag and press Enter'}
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        addTag(tagInput);
+                        setTagInput('');
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      addTag(tagInput);
+                      setTagInput('');
+                    }}
+                  >
+                    {locale === 'zh' ? '添加' : 'Add'}
+                  </Button>
+                </div>
+                {tagSuggestions.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {tagSuggestions.slice(0, 6).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => addTag(s)}
+                        className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      >
+                        #{s}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        setTagSuggestions([]);
+                        localStorage.removeItem('news:tagsHistory');
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      {locale === 'zh' ? '清除建议' : 'Clear suggestions'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Category Filter - Multi-select */}
+              <div className="flex-1 lg:flex-none lg:w-auto">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedCategories([])}
+                    className={`px-3 py-2 text-sm rounded-md border ${selectedCategories.length === 0 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 text-gray-700'}`}
+                  >
+                    {locale === 'zh' ? '所有分类' : 'All Categories'}
+                  </button>
+                  {categories.map((category) => {
+                    const name = category.locales.find(l => l.language === locale)?.name || category.locales[0]?.name || category.slug;
+                    const active = selectedCategories.includes(category.slug);
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => toggleCategory(category.slug)}
+                        className={`px-3 py-2 text-sm rounded-md border transition-colors ${active ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Sort Options */}
@@ -332,20 +476,20 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
             </div>
 
             {/* Active Filters Display */}
-            {(filters.category || filters.search) && (
+            {(selectedCategories.length > 0 || filters.search || tags.length > 0) && (
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-sm text-gray-600">{st('filters')}:</span>
-                {filters.category && (
-                  <CategoryBadge
-                    category={{
-                      id: filters.category,
-                      slug: filters.category,
-                      locales: categories
-                        .find(c => c.slug === filters.category)?.locales || []
-                    }}
-                    locale={locale}
-                  />
-                )}
+                {selectedCategories.map((slug) => {
+                  const cat = categories.find(c => c.slug === slug);
+                  const locales = cat?.locales || [];
+                  return (
+                    <CategoryBadge
+                      key={slug}
+                      category={{ id: slug, slug, locales }}
+                      locale={locale}
+                    />
+                  );
+                })}
                 {filters.search && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                     &quot;{filters.search}&quot;
@@ -357,14 +501,17 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
                     </button>
                   </span>
                 )}
+                {tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                    #{tag}
+                    <button onClick={() => removeTag(tag)} className="ml-1 text-gray-500 hover:text-gray-700">×</button>
+                  </span>
+                ))}
                 <button
                   onClick={() => {
-                    setFilters({
-                      category: '',
-                      search: '',
-                      sortBy: 'publishedAt',
-                      sortOrder: 'desc',
-                    });
+                    setFilters({ search: '', sortBy: 'publishedAt', sortOrder: 'desc' });
+                    setSelectedCategories([]);
+                    setTags([]);
                     router.push(`/${locale}/news`);
                   }}
                   className="text-sm text-blue-600 hover:text-blue-800"
@@ -389,7 +536,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
                   ) : t('latestNews')}
                 </h1>
                 <p className="text-gray-600">
-                  {pagination.totalCount} {locale === 'zh' ? '篇文章' : 'articles'}
+                  {filteredTotalCount} {locale === 'zh' ? '篇文章' : 'articles'}
                 </p>
               </div>
             </div>
@@ -403,7 +550,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
             ) : nonFeaturedArticles.length > 0 ? (
               <>
                 <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-                  {nonFeaturedArticles.map((article) => (
+                  {displayedArticles.map((article) => (
                     <NewsCard
                       key={article.id}
                       article={article}
@@ -414,25 +561,25 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
                 </div>
 
                 {/* Pagination */}
-                {pagination.totalPages > 1 && (
+                {effectiveTotalPages > 1 && (
                   <div className="mt-12 flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                      显示 {((currentPage - 1) * pagination.limit) + 1} - {Math.min(currentPage * pagination.limit, pagination.totalCount)} 共 {pagination.totalCount} 篇文章
+                      显示 {((currentPageClamped - 1) * pagination.limit) + 1} - {Math.min(currentPageClamped * pagination.limit, effectiveTotalCount)} 共 {effectiveTotalCount} 篇文章
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage <= 1}
+                        onClick={() => handlePageChange(currentPageClamped - 1)}
+                        disabled={currentPageClamped <= 1}
                         className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                       >
                         上一页
                       </button>
                       <span className="px-3 py-1">
-                        第 {currentPage} 页，共 {pagination.totalPages} 页
+                        第 {currentPageClamped} 页，共 {effectiveTotalPages} 页
                       </span>
                       <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage >= pagination.totalPages}
+                        onClick={() => handlePageChange(currentPageClamped + 1)}
+                        disabled={currentPageClamped >= effectiveTotalPages}
                         className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                       >
                         下一页

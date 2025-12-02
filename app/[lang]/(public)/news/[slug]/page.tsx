@@ -57,6 +57,14 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const [fontScale, setFontScale] = useState<number>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('news:fontScale') : null;
+    const v = saved ? parseFloat(saved) : 1;
+    return isNaN(v) ? 1 : Math.min(1.4, Math.max(0.9, v));
+  });
 
   useEffect(() => {
     if (slug) {
@@ -64,6 +72,20 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
       fetchRelatedArticles();
     }
   }, [slug, locale]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const top = doc.scrollTop || document.body.scrollTop;
+      const height = (doc.scrollHeight || document.body.scrollHeight) - (doc.clientHeight || window.innerHeight);
+      const p = height > 0 ? Math.min(100, Math.max(0, (top / height) * 100)) : 0;
+      setProgress(p);
+      setShowTop(top > 400);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const fetchArticle = async () => {
     try {
@@ -129,9 +151,10 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
         url,
       });
     } else {
-      // 回退到复制链接
-      navigator.clipboard.writeText(window.location.href);
-      // 这里可以添加一个toast提示
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
     }
   };
 
@@ -207,9 +230,26 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
   const publishDate = article.publishedAt || article.createdAt;
   const readingTime = calculateReadingTime(currentLocaleContent.content || '');
 
+  const decreaseFont = () => {
+    const next = Math.max(0.9, fontScale - 0.1);
+    setFontScale(next);
+    localStorage.setItem('news:fontScale', String(next));
+  };
+  const increaseFont = () => {
+    const next = Math.min(1.4, fontScale + 0.1);
+    setFontScale(next);
+    localStorage.setItem('news:fontScale', String(next));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main>
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+          <div
+            className="h-full bg-blue-500 transition-[width] duration-200"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
         {/* Breadcrumb */}
         <div className="bg-white border-b border-gray-200">
           <div className="container-custom py-4">
@@ -294,6 +334,15 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
                     <Bookmark className="w-4 h-4" />
                     <span>{locale === 'zh' ? '收藏' : 'Save'}</span>
                   </button>
+                  <div className="flex items-center space-x-1">
+                    <button onClick={decreaseFont} className="px-2 py-1 border border-gray-300 rounded-md text-sm">A-</button>
+                    <button onClick={increaseFont} className="px-2 py-1 border border-gray-300 rounded-md text-sm">A+</button>
+                  </div>
+                  {copied && (
+                    <span className="text-xs text-green-600">
+                      {locale === 'zh' ? '链接已复制' : 'Link copied'}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -307,7 +356,7 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
         <section className="py-12">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto">
-              <div className="prose prose-lg max-w-none">
+              <div className="prose prose-lg max-w-none" style={{ fontSize: `${fontScale}rem` }}>
                 {/* Content - assuming Markdown or HTML */}
                 <div
                   className="text-gray-800 leading-relaxed"
@@ -376,6 +425,14 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
               </div>
             </div>
           </section>
+        )}
+        {showTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-6 px-3 py-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600"
+          >
+            ↑
+          </button>
         )}
       </main>
     </div>

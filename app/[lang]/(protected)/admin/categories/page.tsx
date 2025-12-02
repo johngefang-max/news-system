@@ -103,13 +103,25 @@ export default function CategoriesPage() {
       setError('');
       const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories';
       const method = editingCategory ? 'PUT' : 'POST';
+      const localesArray = (['zh', 'en'] as const)
+        .map((lang) => {
+          const name = formData.locales[lang].name?.trim();
+          if (!name) return null;
+          return { language: lang, name };
+        })
+        .filter(Boolean);
+
+      const submitData = {
+        slug: formData.slug?.trim(),
+        locales: localesArray,
+      };
 
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {

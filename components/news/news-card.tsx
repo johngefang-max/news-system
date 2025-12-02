@@ -79,7 +79,7 @@ export function NewsCard({
 
   const cardContent = (
     <Card
-      className={`news-card group cursor-pointer overflow-hidden ${
+      className={`news-card group relative cursor-pointer overflow-hidden ${
         variant === 'featured' ? 'ring-2 ring-blue-500 shadow-lg' : ''
       } ${variant === 'compact' ? 'shadow-sm' : 'shadow-md'} ${className}`}
     >
@@ -91,7 +91,7 @@ export function NewsCard({
         </div>
       )}
 
-      <CardContent className="p-6">
+      <CardContent className="relative z-10 p-6">
         {/* Title */}
         <h3 className="news-card-title transition-colors group-hover:text-blue-600">
           {currentLocaleContent.title}
@@ -108,12 +108,13 @@ export function NewsCard({
         {showCategory && currentLocaleCategories.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {currentLocaleCategories.slice(0, 3).map((category) => (
-              <span
+              <Link
                 key={category.id}
+                href={`/${locale}/categories/${category.slug}`}
                 className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
               >
                 {category.name}
-              </span>
+              </Link>
             ))}
           </div>
         )}
@@ -125,7 +126,12 @@ export function NewsCard({
             {showDate && (
               <div className="flex items-center space-x-1">
                 <Calendar className="w-3 h-3" />
-                <span className="font-medium">
+                <span
+                  className="font-medium"
+                  title={new Date(publishDate).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                  })}
+                >
                   {formatRelativeTime(publishDate, locale)}
                 </span>
               </div>
@@ -148,9 +154,9 @@ export function NewsCard({
           </div>
         </div>
 
-        {/* Hover Effect Indicator */}
-        <div className="absolute inset-0 bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-lg" />
+        
       </CardContent>
+      <div className="absolute inset-0 z-0 bg-blue-50 opacity-0 group-hover:opacity-50 transition-opacity pointer-events-none rounded-lg" />
     </Card>
   );
 

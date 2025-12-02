@@ -84,6 +84,15 @@ export default function CategoryPage({ params: { lang, slug: paramSlug } }: Cate
     }
   }, [slug, locale, sortBy, sortOrder]);
 
+  useEffect(() => {
+    if (!slug) return;
+    const key = `category:viewMode:${locale}:${slug}`;
+    const saved = localStorage.getItem(key);
+    if (saved === 'grid' || saved === 'list') {
+      setViewMode(saved as 'grid' | 'list');
+    }
+  }, [slug, locale]);
+
   const fetchCategory = async () => {
     try {
       const response = await fetch(`/api/categories?language=${locale}`);
@@ -269,13 +278,21 @@ export default function CategoryPage({ params: { lang, slug: paramSlug } }: Cate
                 {/* View Mode Toggle */}
                 <div className="flex items-center border border-gray-300 rounded-md">
                   <button
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => {
+                      setViewMode('grid');
+                      const key = `category:viewMode:${locale}:${slug}`;
+                      localStorage.setItem(key, 'grid');
+                    }}
                     className={`p-2 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'text-gray-600'}`}
                   >
                     <Grid3X3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setViewMode('list')}
+                    onClick={() => {
+                      setViewMode('list');
+                      const key = `category:viewMode:${locale}:${slug}`;
+                      localStorage.setItem(key, 'list');
+                    }}
                     className={`p-2 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'text-gray-600'}`}
                   >
                     <List className="w-4 h-4" />
