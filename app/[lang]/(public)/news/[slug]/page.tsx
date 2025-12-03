@@ -8,6 +8,8 @@ import { Button, Loading, LoadingSkeleton } from '@/components/ui';
 import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Article {
   id: string;
@@ -356,14 +358,13 @@ export default function NewsDetailPage({ params: { lang, slug: paramSlug } }: Ne
         <section className="py-12">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto">
-              <div className="prose prose-lg max-w-none" style={{ fontSize: `${fontScale}rem` }}>
-                {/* Content - assuming Markdown or HTML */}
-                <div
-                  className="text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: currentLocaleContent.content?.replace(/\n/g, '<br>') || ''
-                  }}
-                />
+              <div
+                className="prose prose-lg max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-gray-800 prose-p:leading-relaxed prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-800 prose-code:text-pink-600 prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic"
+                style={{ fontSize: `${fontScale}rem` }}
+              >
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {currentLocaleContent.content || ''}
+                </ReactMarkdown>
               </div>
 
               {/* Article Tags */}

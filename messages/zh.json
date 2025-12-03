@@ -24,7 +24,8 @@
     "logout": "退出登录",
     "login": "登录",
     "language": "语言",
-    "search": "搜索"
+    "search": "搜索",
+    "settings": "设置"
   },
   "HomePage": {
     "title": "国际新闻门户",
@@ -70,7 +71,10 @@
     "publishedArticles": "已发布",
     "draftArticles": "草稿",
     "totalCategories": "分类总数",
-    "recentActivity": "最近活动"
+    "recentActivity": "最近活动",
+    "manageArticles": "文章管理",
+    "manageCategories": "分类管理",
+    "manageUsers": "用户管理"
   },
   "AdminArticles": {
     "manageArticles": "文章管理",

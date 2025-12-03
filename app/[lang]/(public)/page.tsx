@@ -103,8 +103,7 @@ export default function HomePage({ params: { lang } }: HomePageProps) {
     }
   };
 
-  // 分离精选和非精选文章
-  const nonFeaturedArticles = articles.filter(article => !article.featured);
+  // 分离精选文章
   const featuredMainArticle = featuredArticles[0];
   const featuredSecondaryArticles = featuredArticles.slice(1);
 
@@ -171,15 +170,15 @@ export default function HomePage({ params: { lang } }: HomePageProps) {
       <main>
         {/* Hero Section with Featured Articles */}
         {featuredMainArticle && (
-          <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-12 md:py-16">
+          <section className="bg-gradient-to-br from-primary/10 to-primary/5 py-12 md:py-16">
             <div className="container-custom">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Main Featured Article */}
                 <div>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
                     {locale === 'zh' ? '精选文章' : 'Featured Stories'}
                   </h1>
-                  <p className="text-lg text-gray-600 mb-8">
+                  <p className="text-lg text-muted-foreground mb-8">
                     {locale === 'zh' ? '发现我们为您精心挑选的最新资讯' : 'Discover carefully selected stories from around the world'}
                   </p>
                   <FeaturedNewsCard article={featuredMainArticle} locale={locale} />
@@ -207,13 +206,13 @@ export default function HomePage({ params: { lang } }: HomePageProps) {
 
         {/* Categories Section */}
         {categories.length > 0 && (
-          <section className="py-12 bg-white border-y border-gray-200">
+          <section className="py-12 bg-card border-y border-border">
             <div className="container-custom">
               <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
                   {locale === 'zh' ? '探索分类' : 'Explore Categories'}
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {locale === 'zh' ? '按主题浏览您感兴趣的内容' : 'Browse content by topics that interest you'}
                 </p>
               </div>
@@ -239,16 +238,16 @@ export default function HomePage({ params: { lang } }: HomePageProps) {
         )}
 
         {/* Latest Articles Section */}
-        {nonFeaturedArticles.length > 0 && (
+        {articles.length > 0 && (
           <section className="py-12">
             <div className="container-custom">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
                     {t('latestNews')}
                   </h2>
-                  <p className="text-gray-600">
-                    {locale === 'zh' ? '最新的新闻和动态' : 'The latest news and updates'}
+                  <p className="text-muted-foreground">
+                    {locale === 'zh' ? `最新的新闻和动态 (${Math.min(articles.length, 3)} 篇文章)` : `The latest news and updates (${Math.min(articles.length, 3)} articles)`}
                   </p>
                 </div>
 
@@ -261,7 +260,7 @@ export default function HomePage({ params: { lang } }: HomePageProps) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {nonFeaturedArticles.slice(0, 9).map((article) => (
+                {articles.slice(0, 3).map((article) => (
                   <NewsCard
                     key={article.id}
                     article={article}

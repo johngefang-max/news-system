@@ -5,7 +5,18 @@
       "mcp__playwright__browser_navigate",
       "mcp__windows-mcp__Scrape-Tool",
       "WebSearch",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(npm run dev)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_select_option",
+      "Bash(npx tsc:*)",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_tabs"
     ],
     "deny": [],
     "ask": []

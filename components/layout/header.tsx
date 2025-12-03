@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
@@ -21,9 +21,14 @@ export function Header({ locale }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const safePathname = pathname || '/';
-  const [theme, setTheme] = useState<'light' | 'dark'>(
-    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-  );
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // 强制设置浅色模式
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,15 +103,15 @@ export function Header({ locale }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href={`/${locale}`} className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">N</span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">N</span>
             </div>
-            <span className="font-bold text-xl text-gray-900">
+            <span className="font-bold text-xl text-foreground">
               {locale === 'zh' ? '新闻门户' : 'News Portal'}
             </span>
           </Link>
@@ -117,10 +122,10 @@ export function Header({ locale }: HeaderProps) {
               <Link
                 key={item.name}
                 href={`/${locale}${item.href}`}
-                className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                className={`text-sm font-medium transition-colors hover:text-primary ${
                   isActive(item.href)
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-700'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-foreground'
                 }`}
               >
                 {item.name}
@@ -133,7 +138,7 @@ export function Header({ locale }: HeaderProps) {
             {/* Search */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={t('search')}
             >
               <Search className="w-5 h-5" />
@@ -142,28 +147,47 @@ export function Header({ locale }: HeaderProps) {
           {/* Language Switcher */}
           <div className="relative group">
               <button
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={t('language')}
               >
                 <Globe className="w-5 h-5" />
               </button>
-              <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="absolute right-0 mt-2 w-24 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <button
                   onClick={() => handleLanguageChange('zh')}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-t-lg ${
-                    locale === 'zh' ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground rounded-t-lg transition-colors ${
+                    locale === 'zh' ? 'bg-primary text-primary-foreground' : 'text-popover-foreground'
                   }`}
                 >
                   中文
                 </button>
                 <button
                   onClick={() => handleLanguageChange('en')}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-b-lg ${
-                    locale === 'en' ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground rounded-b-lg transition-colors ${
+                    locale === 'en' ? 'bg-primary text-primary-foreground' : 'text-popover-foreground'
                   }`}
                 >
                   English
                 </button>
+              </div>
+            </div>
+
+            {/* Theme Toggle */}
+            <div className="relative group">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                }}
+                className="p-2 text-muted-foreground cursor-not-allowed opacity-50"
+                aria-label="Theme toggle disabled"
+                title="该功能未上线"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <div className="absolute right-0 mt-2 w-32 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="px-3 py-2 text-sm text-popover-foreground">
+                  该功能未上线
+                </div>
               </div>
             </div>
 
@@ -172,23 +196,23 @@ export function Header({ locale }: HeaderProps) {
               <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
             ) : session ? (
               <div className="relative group">
-                <button className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <button className="flex items-center space-x-2 p-2 text-muted-foreground hover:text-foreground transition-colors">
                   <User className="w-5 h-5" />
                   <span className="hidden md:block text-sm font-medium">
                     {session.user?.name || 'Admin'}
                   </span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <Link
                     href={`/${locale}/admin/dashboard`}
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground rounded-t-lg transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                     <span>{t('admin')}</span>
                   </Link>
                   <button
                     onClick={() => signOut()}
-                    className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
+                    className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground rounded-b-lg transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>{t('logout')}</span>
@@ -206,41 +230,30 @@ export function Header({ locale }: HeaderProps) {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+              className="md:hidden p-2 text-muted-foreground hover:text-foreground"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-
-          {/* Theme Toggle (admin) */}
-          {session && (session.user as any)?.role === 'ADMIN' && (
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-          )}
         </div>
 
         {/* Search Bar - Expandable */}
         {isSearchOpen && (
-          <div className="py-4 border-t border-gray-200">
+          <div className="py-4 border-t border-border">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
                 name="search"
                 placeholder={t('search') || '搜索...'}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 pl-10 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 autoFocus
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(false)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -251,7 +264,7 @@ export function Header({ locale }: HeaderProps) {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-border bg-background">
           <nav className="px-4 py-2 space-y-1">
             {navigation.map((item) => (
               <Link
@@ -259,8 +272,8 @@ export function Header({ locale }: HeaderProps) {
                 href={`/${locale}${item.href}`}
                 className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'text-primary bg-primary/10'
+                    : 'text-foreground hover:text-foreground hover:bg-accent'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -270,7 +283,7 @@ export function Header({ locale }: HeaderProps) {
             {session && (
               <Link
                 href={`/${locale}/admin/dashboard`}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:text-foreground hover:bg-accent"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t('admin')}

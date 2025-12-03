@@ -5,6 +5,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: '国际新闻门户 - International News Portal',
   description: '获取全球最新资讯 | Get the latest global updates',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default async function RootLayout({

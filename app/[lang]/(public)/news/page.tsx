@@ -246,15 +246,14 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
     return tags.some(t => text.includes(t.toLowerCase()));
   };
   const clientFilteredArticles = articles.filter(a => matchCategories(a) && matchTags(a));
-  const nonFeaturedArticles = clientFilteredArticles.filter(article => !article.featured);
   const filteredTotalCount = clientFilteredArticles.length;
   const clientPagingEnabled = selectedCategories.length > 1 || tags.length > 0;
   const effectiveTotalCount = clientPagingEnabled ? filteredTotalCount : pagination.totalCount;
   const effectiveTotalPages = Math.max(1, Math.ceil(effectiveTotalCount / pagination.limit));
   const currentPageClamped = Math.min(Math.max(1, currentPage), effectiveTotalPages);
   const displayedArticles = clientPagingEnabled
-    ? nonFeaturedArticles.slice((currentPageClamped - 1) * pagination.limit, currentPageClamped * pagination.limit)
-    : nonFeaturedArticles;
+    ? clientFilteredArticles.slice((currentPageClamped - 1) * pagination.limit, currentPageClamped * pagination.limit)
+    : clientFilteredArticles;
   const featuredMainArticle = featuredArticles[0];
   const featuredSecondaryArticles = featuredArticles.slice(1);
 
@@ -547,7 +546,7 @@ export default function NewsPage({ params: { lang } }: NewsPageProps) {
                   viewMode === 'grid' ? <LoadingSkeleton key={i} className="h-64" /> : <LoadingSkeleton key={i} className="h-32" />
                 ))}
               </div>
-            ) : nonFeaturedArticles.length > 0 ? (
+            ) : displayedArticles.length > 0 ? (
               <>
                 <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
                   {displayedArticles.map((article) => (

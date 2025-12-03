@@ -91,7 +91,7 @@ export function NewsCard({
         </div>
       )}
 
-      <CardContent className="relative z-10 p-6">
+      <CardContent className="relative z-10 p-6 flex-1 news-card-content">
         {/* Title */}
         <h3 className="news-card-title transition-colors group-hover:text-blue-600">
           {currentLocaleContent.title}
@@ -108,19 +108,18 @@ export function NewsCard({
         {showCategory && currentLocaleCategories.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {currentLocaleCategories.slice(0, 3).map((category) => (
-              <Link
+              <span
                 key={category.id}
-                href={`/${locale}/categories/${category.slug}`}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
               >
                 {category.name}
-              </Link>
+              </span>
             ))}
           </div>
         )}
 
         {/* Meta Information */}
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="news-card-meta">
           <div className="flex items-center space-x-4">
             {/* Date */}
             {showDate && (
